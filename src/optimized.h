@@ -4,18 +4,18 @@ extern const int FAIL;
 extern const int PASS;
 
 const float m_epsilon = 90;
-const int MINIMUM_POINTS = 4;
+const int minimumPoints = 4;
 
 #include "dbscan.h"
 
 class optimized {
 
-    std::vector<int>neighbourhood(Point t_point)
+    std::vector<int>query(Point core)
     {
         int index = 0;
         std::vector<int> neighbours;
         for (auto points : m_points) {
-            if (t_point.distance(points) <= m_epsilon) {
+            if (core.distance(points) <= m_epsilon) {
                 neighbours.push_back(index);
             }
             index++;
@@ -23,35 +23,37 @@ class optimized {
         return neighbours;
     }
 
-    int findNeighbors(Point t_point, int t_cluster)
+    int dbscan(Point point, int cluster)
     {
-        std::vector<int> neighbours = neighbourhood(t_point);
-        if (neighbours.size() < MINIMUM_POINTS) {
-            t_point.m_cluster = NOISE;
+        std::vector<int> neighbours = query(point);
+        if (neighbours.size() < minimumPoints) {
+            point.m_cluster = NOISE;
             return FAIL;
         }
 
         int index = 0;
-        int centroid = 0;
+        int core = 0;
         for (auto neighbour : neighbours) {
-            m_points.at(neighbour).m_cluster = t_cluster;
-            if (m_points.at(neighbour) == t_point) {
-                centroid = index;
+            m_points.at(neighbour).m_cluster = cluster;
+            if (m_points.at(neighbour) == point) {
+                core = index;
             }
             ++index;
         }
-        neighbours.erase(neighbours.begin() + centroid);
+        neighbours.erase(neighbours.begin() + core);
+        // std::cout << neighbours.size() << std::endl;
+        // std::cout << neighbours.size() << std::endl;
 
-        for (std::vector<int>::size_type i = 0, n = neighbours.size(); i < n; ++i) {
+        for (int i = 0, n = neighbours.size(); i < n; ++i) {
             std::vector<int> nextNeighbours
-                    = neighbourhood(m_points.at(neighbours[i]));
+                    = query(m_points.at(neighbours[i]));
 
-            if (nextNeighbours.size() >= MINIMUM_POINTS) {
+            if (nextNeighbours.size() >= minimumPoints) {
                 for (auto neighbour : nextNeighbours) {
                     if (m_points.at(neighbour).undefined()) {
                         neighbours.push_back(neighbour);
                         n = neighbours.size();
-                        m_points.at(neighbour).m_cluster = t_cluster;
+                        m_points.at(neighbour).m_cluster = cluster;
                     }
                 }
             }
@@ -69,7 +71,7 @@ explicit optimized(std::vector<Point>& points)
     int cluster = 0;
     for (auto point : m_points) {
         if (point.m_cluster == UNDEFINED) {
-            if (findNeighbors(point, cluster) != FAIL) {
+            if (dbscan(point, cluster) != FAIL) {
                 cluster += 1;
             }
         }
