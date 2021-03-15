@@ -8,7 +8,7 @@ const int MINIMUM_POINTS = 4;
 
 #include "dbscan.h"
 
-class modified {
+class optimized {
 
     std::vector<int>neighbourhood(Point t_point)
     {
@@ -63,7 +63,7 @@ public:
     std::vector<Point> m_points;
     int m_clusterCount;
 
-explicit modified(std::vector<Point>& points)
+explicit optimized(std::vector<Point>& points)
         : m_points(points)
 {
     int cluster = 0;
