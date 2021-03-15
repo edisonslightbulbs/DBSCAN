@@ -4,12 +4,9 @@
 #include "point.h"
 #include <vector>
 
-class dbscan {
+namespace dbscan {
 
-public:
-    dbscan() = default;
-    ~dbscan() = default;
-    static std::vector<Point> cluster(
-        std::vector<Point> points, const int& neighbourhoodSize);
+std::pair<std::vector<Point>, int> run(
+    std::vector<Point>& points, const int& minPoints, const float& epsilon);
 };
 #endif /* DBSCAN_H */
