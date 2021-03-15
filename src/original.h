@@ -16,7 +16,7 @@ namespace original{
         return neighbours;
     }
 
-    std::vector<Point> cluster(std::vector<Point> points, const int& minPoints, const float& epsilon)
+    std::pair<std::vector<Point>, int> cluster(std::vector<Point> points, const int& minPoints, const float& epsilon)
     {
 /**
  * DBSCAN
@@ -39,29 +39,37 @@ namespace original{
                 continue;
             }
             cluster = cluster + 1;
+            /** label point */
             point.m_cluster = cluster;
 
             /** remove current core from neighbours to expand */
-            std::vector<Point> seedSet = neighbours;
-            seedSet.erase(std::find(seedSet.begin(), seedSet.end(), point));
-            for(int i = 0; i < seedSet.size(); i++){
-                if (seedSet[i].m_cluster == NOISE) {
-                    seedSet[i].m_cluster = cluster;
-                }
-                if (seedSet[i].m_cluster != UNDEFINED) {
-                    continue;
-                }
-                seedSet[i].m_cluster = cluster;
+            std::cout << neighbours.size() << std::endl;
+            neighbours.erase(std::find(neighbours.begin(), neighbours.end(), point));
+            std::cout << neighbours.size() << std::endl;
+            for (int i = 0, n = neighbours.size(); i < n; ++i) {
+                // if (neighbours[i].m_cluster == NOISE) {
+                //     neighbours[i].m_cluster = cluster;
+                // }
+                // if (neighbours[i].m_cluster != UNDEFINED) {
+                //     continue;
+                // }
+                // neighbours[i].m_cluster = cluster;
 
                 /** nearest neighbors */
-                std::vector<Point> newNeighbours = query(points, seedSet[i], EPSILON);
+                std::vector<Point> newNeighbours = query(points, neighbours[i], EPSILON);
                 if (newNeighbours.size() >= minPoints) {
-                    seedSet.insert(seedSet.end(), newNeighbours.begin(), newNeighbours.end());
+                    for (auto neighbour : newNeighbours) {
+                        if (neighbour.undefined()) {
+                            neighbours.push_back(neighbour);
+                            n = neighbours.size();
+                            neighbour.m_cluster = cluster;
+                        }
+                    }
                 }
             }
         }
         // io::write(points, io::pwd() + "/build/dbscan.csv");
 
-        return points;
+        return { points, cluster };
     }
 }
