@@ -7,17 +7,14 @@
 extern const int FAIL;
 extern const int PASS;
 
-const float m_epsilon = 90;
-const int minimumPoints = 4;
+namespace original {
 
-namespace optimized {
-
-std::vector<int> queryRange(std::vector<Point> m_points, Point core)
+std::vector<int> queryRange(std::shared_ptr<std::vector<Point>>& sptr_points, Point core, const float& epsilon)
 {
     int index = 0;
     std::vector<int> neighbours;
-    for (auto points : m_points) {
-        if (core.distance(points) <= m_epsilon) {
+    for (auto points : *sptr_points) {
+        if (core.distance(points) <= epsilon) {
             neighbours.push_back(index);
         }
         index++;
@@ -25,10 +22,10 @@ std::vector<int> queryRange(std::vector<Point> m_points, Point core)
     return neighbours;
 }
 
-int dbscan(std::vector<Point> m_points, Point point, int cluster)
+int scan(std::shared_ptr<std::vector<Point>>& sptr_points, Point point, int cluster, const int& minPoints, const float& epsilon)
 {
-    std::vector<int> neighbours = queryRange(m_points, point);
-    if (neighbours.size() < minimumPoints) {
+    std::vector<int> neighbours = queryRange(sptr_points, point, epsilon);
+    if (neighbours.size() < minPoints) {
         point.m_cluster = NOISE;
         return FAIL;
     }
@@ -36,8 +33,8 @@ int dbscan(std::vector<Point> m_points, Point point, int cluster)
     int index = 0;
     int core = 0;
     for (auto neighbour : neighbours) {
-        m_points.at(neighbour).m_cluster = cluster;
-        if (m_points.at(neighbour) == point) {
+        sptr_points->at(neighbour).m_cluster = cluster;
+        if (sptr_points->at(neighbour) == point) {
             core = index;
         }
         ++index;
@@ -46,14 +43,14 @@ int dbscan(std::vector<Point> m_points, Point point, int cluster)
 
     for (std::vector<int>::size_type i = 0, n = neighbours.size(); i < n; ++i) {
         std::vector<int> nextNeighbours
-            = queryRange(m_points, m_points.at(neighbours[i]));
+            = queryRange(sptr_points, sptr_points->at(neighbours[i]), epsilon);
 
-        if (nextNeighbours.size() >= minimumPoints) {
+        if (nextNeighbours.size() >= minPoints) {
             for (auto neighbour : nextNeighbours) {
-                if (m_points.at(neighbour).undefined()) {
+                if (sptr_points->at(neighbour).undefined()) {
                     neighbours.push_back(neighbour);
                     n = neighbours.size();
-                    m_points.at(neighbour).m_cluster = cluster;
+                    sptr_points->at(neighbour).m_cluster = cluster;
                 }
             }
         }
@@ -61,20 +58,17 @@ int dbscan(std::vector<Point> m_points, Point point, int cluster)
     return PASS;
 }
 
-std::vector<Point> m_points;
-
-std::pair<std::vector<Point> int> run(std::vector<Point>& points)
+std::pair<std::vector<Point>, int> run(std::shared_ptr<std::vector<Point>>& sptr_points, const int& minPoints, const float& epsilon)
 {
-    m_points = points;
     int cluster = 0;
-    for (auto point : m_points) {
+    for (auto point : *sptr_points) {
         if (point.m_cluster == UNDEFINED) {
-            if (dbscan(m_points, point, cluster) != FAIL) {
+            if (scan(sptr_points, point, cluster, minPoints, epsilon) != FAIL) {
                 cluster += 1;
             }
         }
     }
-    return { m_points, cluster };
+    return { *sptr_points, cluster };
 }
 }
 #endif /* ORIGINAL_H */
