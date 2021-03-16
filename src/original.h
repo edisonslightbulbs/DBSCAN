@@ -1,20 +1,23 @@
 #ifndef ORIGINAL_H
 #define ORIGINAL_H
 
-#include "point.h"
+#include <memory>
 #include <vector>
+
+#include "point.h"
 
 extern const int FAIL;
 extern const int PASS;
 
 namespace original {
 
-std::vector<int> queryRange(std::shared_ptr<std::vector<Point>>& sptr_points, Point core, const float& epsilon)
+std::vector<int> queryRange(std::shared_ptr<std::vector<Point>>& sptr_points,
+    Point core, const float& epsilon)
 {
     int index = 0;
     std::vector<int> neighbours;
-    for (auto points : *sptr_points) {
-        if (core.distance(points) <= epsilon) {
+    for (auto point : *sptr_points) {
+        if (core.distance(point) <= epsilon) {
             neighbours.push_back(index);
         }
         index++;
@@ -22,7 +25,8 @@ std::vector<int> queryRange(std::shared_ptr<std::vector<Point>>& sptr_points, Po
     return neighbours;
 }
 
-int scan(std::shared_ptr<std::vector<Point>>& sptr_points, Point point, int cluster, const int& minPoints, const float& epsilon)
+int scan(std::shared_ptr<std::vector<Point>>& sptr_points, Point point,
+    int cluster, const int& minPoints, const float& epsilon)
 {
     std::vector<int> neighbours = queryRange(sptr_points, point, epsilon);
     if (neighbours.size() < minPoints) {
@@ -42,11 +46,11 @@ int scan(std::shared_ptr<std::vector<Point>>& sptr_points, Point point, int clus
     neighbours.erase(neighbours.begin() + core);
 
     for (std::vector<int>::size_type i = 0, n = neighbours.size(); i < n; ++i) {
-        std::vector<int> nextNeighbours
+        std::vector<int> nextSet
             = queryRange(sptr_points, sptr_points->at(neighbours[i]), epsilon);
 
-        if (nextNeighbours.size() >= minPoints) {
-            for (auto neighbour : nextNeighbours) {
+        if (nextSet.size() >= minPoints) {
+            for (auto neighbour : nextSet) {
                 if (sptr_points->at(neighbour).undefined()) {
                     neighbours.push_back(neighbour);
                     n = neighbours.size();
@@ -58,7 +62,9 @@ int scan(std::shared_ptr<std::vector<Point>>& sptr_points, Point point, int clus
     return PASS;
 }
 
-std::pair<std::vector<Point>, int> run(std::shared_ptr<std::vector<Point>>& sptr_points, const int& minPoints, const float& epsilon)
+std::pair<std::vector<Point>, int> run(
+    std::shared_ptr<std::vector<Point>>& sptr_points, const int& minPoints,
+    const float& epsilon)
 {
     int cluster = 0;
     for (auto point : *sptr_points) {
