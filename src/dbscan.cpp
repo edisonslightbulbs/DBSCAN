@@ -2,6 +2,8 @@
 #include <vector>
 
 #include "dbscan.h"
+#include "elbow.h"
+#include "knn.h"
 #include "point.h"
 
 extern const int FAIL;
@@ -58,7 +60,7 @@ int scan(std::shared_ptr<std::vector<Point>>& sptr_points, Point point,
     return PASS;
 }
 
-std::pair<std::vector<Point>, int> run(
+std::pair<std::vector<Point>, int> cluster(
     std::shared_ptr<std::vector<Point>>& sptr_points, const int& minPoints,
     const float& epsilon)
 {
@@ -74,11 +76,72 @@ std::pair<std::vector<Point>, int> run(
     return { *sptr_points, cluster };
 }
 
-std::pair<std::vector<Point>, int> dbscan::cluster(
-    std::vector<Point>& points, const int& minPoints, const float& epsilon)
+std::vector<Point> largestDensity(std::pair<std::vector<Point>, int>& points)
 {
+    std::vector<std::vector<Point>> clusters(points.second);
+
+    for (int i = 0; i <= points.second; ++i) {
+        for (auto& point : points.first) {
+            if (i == point.m_cluster) {
+                clusters[i].push_back(point);
+            }
+        }
+    }
+
+    std::vector<Point> proposal;
+    for (auto& cluster : clusters) {
+        if (cluster.size() > proposal.size()) {
+            proposal.clear();
+            proposal = cluster;
+        }
+    }
+    return proposal;
+}
+
+std::vector<Point> sample(std::vector<Point> points)
+{
+    const int SAMPLE_SIZE = 1000;
+
+    /** find centroid */
+    Point center = Point::centroid(points);
+
+    /** compute distances from centroid for each point */
+    for (auto& point : points) {
+        float distance = point.distance(center);
+        point.m_distance.second = distance;
+    }
+
+    /** sort points */
+    Point::sort(points);
+
+    /** sample edge of run points */
+    std::vector<Point> sample
+        = std::vector<Point>(points.end(), points.end() + SAMPLE_SIZE);
+
+    return sample;
+}
+
+std::vector<Point> dbscan::run(std::vector<Point>& points)
+{
+    /** sample grown region */
+    std::vector<Point> samplePoints = sample(points);
+
+    /** query distances to 4th nearest neighbours */
+    std::vector<float> knn4 = knn::compute(samplePoints);
+
+    /** query epsilon  */
+    // elbow::analyze(knn4);
+    float epsilon = 114;
+    const int MIN_POINTS = 4;
+
+    /** cluster points and track number of clusters */
     auto sptr_points = std::make_shared<std::vector<Point>>(points);
-    std::pair<std::vector<Point>, int> clustered;
-    clustered = run(sptr_points, minPoints, epsilon);
-    return clustered;
+    std::pair<std::vector<Point>, int> clusters;
+    clusters = cluster(sptr_points, MIN_POINTS, epsilon);
+
+    /** tabletop corresponds to the cluster with the largest density */
+    std::vector<Point> tabletop
+        = largestDensity(clusters); // <- tabletop interaction context
+
+    return tabletop;
 }
