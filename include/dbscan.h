@@ -5,7 +5,6 @@
 #include <vector>
 
 namespace dbscan {
-std::pair<std::vector<Point>, int> cluster(
-    std::vector<Point>& points, const int& minPoints, const float& epsilon);
+std::vector<Point> run(std::vector<Point>& points);
 };
 #endif /* DBSCAN_H */
