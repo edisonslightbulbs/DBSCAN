@@ -5,6 +5,6 @@
 #include <vector>
 
 namespace dbscan {
-std::vector<Point> run(std::vector<Point>& points);
-};
+std::pair<std::vector<Point>, int> run(std::vector<Point>& points);
+}
 #endif /* DBSCAN_H */
