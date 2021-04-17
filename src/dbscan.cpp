@@ -126,7 +126,6 @@ std::pair<std::vector<Point>, int> cluster(
                 != FAIL) {
                 cluster += 1;
                 colorIndex += 1;
-
                 /** reset color index after max */
                 if (colorIndex == maxColorIndex) {
                     colorIndex = 0;
@@ -138,7 +137,7 @@ std::pair<std::vector<Point>, int> cluster(
     return { *sptr_points, cluster };
 }
 
-std::pair<std::vector<Point>, int> dbscan::run(std::vector<Point>& points)
+std::pair<std::vector<Point>, int> dbscan::original(std::vector<Point>& points)
 {
     /** initialize cluster colors */
     initializeClusterColors();
