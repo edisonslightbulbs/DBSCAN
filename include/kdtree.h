@@ -92,13 +92,6 @@ auto get_query_point(
         (*sptr_points)[index].m_xyz[1], (*sptr_points)[index].m_xyz[2] });
 }
 
-auto sort_clusters(std::vector<std::vector<size_t>>& clusters)
-{
-    for (auto& cluster : clusters) {
-        std::sort(cluster.begin(), cluster.end());
-    }
-}
-
 auto dbscan(
     std::shared_ptr<std::vector<Point>>& sptr_points, float eps, int min_pts)
 {
@@ -148,16 +141,12 @@ auto dbscan(
         }
         clusters.emplace_back(std::move(cluster));
     }
-    sort_clusters(clusters);
     return clusters;
 }
 
 int cluster(std::shared_ptr<std::vector<Point>>& sptr_points,
     const int& minPoints, const float& epsilon)
 {
-
-    std::vector<std::pair<float, float>> data;
-
     auto clusters = kdtree::dbscan(sptr_points, epsilon, minPoints);
 
     /** colorize clusters */
@@ -171,6 +160,7 @@ int cluster(std::shared_ptr<std::vector<Point>>& sptr_points,
             (*sptr_points)[index].m_clusterColor
                 = kdtree::clusterColors[colorIndex];
         }
+
         /** count clusters */
         numClusters += 1;
 
