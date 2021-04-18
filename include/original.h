@@ -135,7 +135,7 @@ int cluster(
                 if (colorIndex == maxColorIndex) {
                     colorIndex = 0;
                 }
-                std::cout << cluster << std::endl;
+                //std::cout << cluster << std::endl;
             }
         }
     }
