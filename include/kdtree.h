@@ -69,8 +69,14 @@ struct adaptor {
     [[nodiscard]] inline float kdtree_get_pt(
         const size_t index, const size_t dim) const
     {
-        return (dim == 0) ? points[index].m_xyz[0]
-                          : points[index].m_xyz[1]; // points[index].m_xyz[1];
+        switch (dim) {
+        case 0:
+            return points[index].m_xyz[0];
+        case 1:
+            return points[index].m_xyz[1];
+        default:
+            return points[index].m_xyz[2];
+        }
     }
 
     template <class BBOX> bool kdtree_get_bbox(BBOX& /*bb*/) const
@@ -82,8 +88,8 @@ struct adaptor {
 auto get_query_point(
     std::shared_ptr<std::vector<Point>>& sptr_points, size_t index)
 {
-    return std::array<float, 2>(
-        { (*sptr_points)[index].m_xyz[0], (*sptr_points)[index].m_xyz[1] });
+    return std::array<float, 3>({ (*sptr_points)[index].m_xyz[0],
+        (*sptr_points)[index].m_xyz[1], (*sptr_points)[index].m_xyz[2] });
 }
 
 auto sort_clusters(std::vector<std::vector<size_t>>& clusters)
@@ -101,10 +107,10 @@ auto dbscan(
     using namespace nanoflann;
     using my_kd_tree_t
         = KDTreeSingleIndexAdaptor<L2_Simple_Adaptor<float, decltype(adapt)>,
-            decltype(adapt), 2>;
+            decltype(adapt), 3>;
 
     auto index
-        = my_kd_tree_t(2, adapt, nanoflann::KDTreeSingleIndexAdaptorParams(10));
+        = my_kd_tree_t(3, adapt, nanoflann::KDTreeSingleIndexAdaptorParams(10));
     index.buildIndex();
 
     auto visited = std::vector<bool>(sptr_points->size());
