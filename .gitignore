@@ -22,3 +22,4 @@ src/timer.cpp
 src/timer.h
 src/io.h
 src/logger.h
+nanoflann/
