@@ -5,6 +5,7 @@
 #include <vector>
 
 namespace dbscan {
-std::pair<std::vector<Point>, int> cluster(std::vector<Point>& points);
+std::pair<std::vector<Point>, int> cluster(
+    std::vector<Point>& points, const float& E, const int& N);
 }
 #endif /* DBSCAN_H */
