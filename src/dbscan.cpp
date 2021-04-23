@@ -3,10 +3,7 @@
 
 #include "dbscan.h"
 #include "kdtree.h"
-#include "logger.h"
-#include "original.h"
 #include "point.h"
-#include "timer.h"
 
 /** color definitions for visualizing clusters */
 /** see@ https://colorbrewer2.org/#type=diverging&scheme=RdYlBu&n=9 */
@@ -57,43 +54,26 @@ void collectColors()
     clusterColors.emplace_back(darkgreen);
 }
 
-// Developer options:
-//   select dbscan approach
-#define ORIGINAL 0
-#define KDTREE 1
 std::vector<std::vector<Point>> dbscan::cluster(
     std::vector<Point>& points, const float& E, const int& N)
 {
     auto sptr_points = std::make_shared<std::vector<Point>>(points);
 
-    // original implementation of dbscan
-    // algorithm provided on wiki:
-    // see@: https://en.wikipedia.org/wiki/DBSCAN
-    //
-#if ORIGINAL == 1
-    int numClusters = original::cluster(sptr_points, E, N);
-#endif
-
-    // implementation: based on nanoflann's optimized kdtree
-    // implementations see@: https://github.com/jlblancoc/nanoflann
-    //
-#if KDTREE == 1
-    /** kdtree::cluster returns clusters of indexes
-     *  use clustered indexes to classify and colorize cluster points */
-
-    Timer timer;
-    /** cluster */
+    /** kdtree::cluster returns clusters of indexes.
+     *  use clustered indexes to labeled/classified and colorize cluster points
+     */
     std::vector<std::vector<unsigned long>> clusters
         = kdtree::cluster(sptr_points, E, N);
 
-    /** sort in descending order of cluster size */
+    /** sort clusters in descending order of cluster size */
     std::sort(clusters.begin(), clusters.end(),
         [](const std::vector<unsigned long>& a,
             const std::vector<unsigned long>& b) {
             return a.size() > b.size();
         });
 
-    /** pre-allocate size of objects */
+    /** create and pre-allocate objects (labeled/classified clusters) container
+     */
     std::vector<std::vector<Point>> objects(100);
 
     /** initialize cluster coloring */
@@ -101,7 +81,6 @@ std::vector<std::vector<Point>> dbscan::cluster(
     int clusterColor = 0;
     int maxColors = clusterColors.size();
 
-    /** classify clusters */
     int clusterLabel = 0;
     for (const auto& cluster : clusters) {
         std::vector<Point> object;
@@ -110,23 +89,23 @@ std::vector<std::vector<Point>> dbscan::cluster(
         if (cluster.size() < 100) {
             continue;
         }
+
+        /** label clusters */
         for (const auto& index : cluster) {
             (*sptr_points)[index].m_clusterColor = clusterColors[clusterColor];
             (*sptr_points)[index].m_cluster = clusterLabel;
             object.emplace_back((*sptr_points)[index]);
         }
 
-        /** collect classified objects */
+        /** collect labeled objects */
         objects.emplace_back(object);
         clusterLabel += 1;
         clusterColor += 1;
 
-        /** confine cluster coloring to existing color definitions */
+        /** confine cluster coloring to existing color set */
         if (clusterColor == maxColors) {
             clusterColor = 0;
         }
     }
-    LOG(INFO) << "dbscan took: " << timer.getDuration();
-#endif
     return objects;
 }
