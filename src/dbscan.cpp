@@ -33,20 +33,20 @@ std::vector<std::string> clusterColors;
 
 void collectColors()
 {
-    clusterColors.emplace_back(red);
-    clusterColors.emplace_back(orange);
-    clusterColors.emplace_back(gold);
-    clusterColors.emplace_back(brown);
-    clusterColors.emplace_back(yellow);
-    clusterColors.emplace_back(skyblue);
     clusterColors.emplace_back(oceanblue);
-    clusterColors.emplace_back(blue);
-    clusterColors.emplace_back(deepblue);
-    clusterColors.emplace_back(black);
+    clusterColors.emplace_back(orange);
     clusterColors.emplace_back(depbrown);
     clusterColors.emplace_back(darkbrown);
     clusterColors.emplace_back(goldenbrown);
     clusterColors.emplace_back(khaki);
+    clusterColors.emplace_back(gold);
+    clusterColors.emplace_back(brown);
+    clusterColors.emplace_back(yellow);
+    clusterColors.emplace_back(skyblue);
+    clusterColors.emplace_back(red);
+    clusterColors.emplace_back(blue);
+    clusterColors.emplace_back(deepblue);
+    clusterColors.emplace_back(black);
     clusterColors.emplace_back(lightgrey);
     clusterColors.emplace_back(lightgreen);
     clusterColors.emplace_back(green);
