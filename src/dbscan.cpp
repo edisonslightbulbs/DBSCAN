@@ -54,14 +54,16 @@ void collectColors()
     clusterColors.emplace_back(darkgreen);
 }
 
+#define p(x) std::cout << std::to_string(x) << std::endl
+
 std::vector<std::vector<Point>> dbscan::cluster(
     std::vector<Point>& points, const float& E, const int& N)
 {
     auto sptr_points = std::make_shared<std::vector<Point>>(points);
 
     /** kdtree::cluster returns clusters of indexes.
-     *  use clustered indexes to labeled/classified and colorize cluster points
-     */
+     *  use clustered indexes to labeled/classified
+     *  and colorize cluster points */
     std::vector<std::vector<unsigned long>> clusters
         = kdtree::cluster(sptr_points, E, N);
 
@@ -72,9 +74,8 @@ std::vector<std::vector<Point>> dbscan::cluster(
             return a.size() > b.size();
         });
 
-    /** create and pre-allocate objects (labeled/classified clusters) container
-     */
-    std::vector<std::vector<Point>> objects(100);
+    /** create objects (labeled/classified clusters) container */
+    std::vector<std::vector<Point>> pointClusters;
 
     /** initialize cluster coloring */
     collectColors();
@@ -83,7 +84,7 @@ std::vector<std::vector<Point>> dbscan::cluster(
 
     int clusterLabel = 0;
     for (const auto& cluster : clusters) {
-        std::vector<Point> object;
+        std::vector<Point> pointCluster;
 
         /** ignore clusters with less than 100 points */
         if (cluster.size() < 100) {
@@ -94,11 +95,11 @@ std::vector<std::vector<Point>> dbscan::cluster(
         for (const auto& index : cluster) {
             (*sptr_points)[index].m_clusterColor = clusterColors[clusterColor];
             (*sptr_points)[index].m_cluster = clusterLabel;
-            object.emplace_back((*sptr_points)[index]);
+            pointCluster.emplace_back((*sptr_points)[index]);
         }
 
         /** collect labeled objects */
-        objects.emplace_back(object);
+        pointClusters.emplace_back(pointCluster);
         clusterLabel += 1;
         clusterColor += 1;
 
@@ -107,5 +108,5 @@ std::vector<std::vector<Point>> dbscan::cluster(
             clusterColor = 0;
         }
     }
-    return objects;
+    return pointClusters;
 }
