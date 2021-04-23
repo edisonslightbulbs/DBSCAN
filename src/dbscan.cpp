@@ -3,25 +3,130 @@
 
 #include "dbscan.h"
 #include "kdtree.h"
+#include "logger.h"
 #include "original.h"
 #include "point.h"
+#include "timer.h"
 
-std::pair<std::vector<Point>, int> dbscan::cluster(
+/** color definitions for visualizing clusters */
+/** see@ https://colorbrewer2.org/#type=diverging&scheme=RdYlBu&n=9 */
+#define red " 215 48 39"
+#define orange " 244 109 67"
+#define gold " 253 173 97"
+#define brown " 254 224 144"
+#define yellow " 255 255 191"
+#define skyblue " 224 243 248"
+#define oceanblue " 171 217 233"
+#define blue " 116 173 209"
+#define deepblue " 69 117 180"
+
+/** see@ https://colorbrewer2.org/#type=diverging&scheme=BrBG&n=9 */
+#define depbrown " 140 81 10"
+#define darkbrown " 191 129 45"
+#define goldenbrown " 223 194 125"
+#define khaki " 223 232 195"
+#define lightgrey " 245 245 245"
+#define lightgreen " 199 234 229"
+#define green " 128 205 193"
+#define deepgreen " 53 151 143"
+#define darkgreen " 1 102 94"
+#define black " 0 0 0"
+
+std::vector<std::string> clusterColors;
+
+void collectColors()
+{
+    clusterColors.emplace_back(red);
+    clusterColors.emplace_back(orange);
+    clusterColors.emplace_back(gold);
+    clusterColors.emplace_back(brown);
+    clusterColors.emplace_back(yellow);
+    clusterColors.emplace_back(skyblue);
+    clusterColors.emplace_back(oceanblue);
+    clusterColors.emplace_back(blue);
+    clusterColors.emplace_back(deepblue);
+    clusterColors.emplace_back(black);
+    clusterColors.emplace_back(depbrown);
+    clusterColors.emplace_back(darkbrown);
+    clusterColors.emplace_back(goldenbrown);
+    clusterColors.emplace_back(khaki);
+    clusterColors.emplace_back(lightgrey);
+    clusterColors.emplace_back(lightgreen);
+    clusterColors.emplace_back(green);
+    clusterColors.emplace_back(deepgreen);
+    clusterColors.emplace_back(darkgreen);
+}
+
+// Developer options:
+//   select dbscan approach
+#define ORIGINAL 0
+#define KDTREE 1
+std::vector<std::vector<Point>> dbscan::cluster(
     std::vector<Point>& points, const float& E, const int& N)
 {
-    /** implementation 1) dbscan using original algorithm */
     auto sptr_points = std::make_shared<std::vector<Point>>(points);
-    // int numClusters = original::cluster(sptr_points, MIN_POINTS, epsilon); //
-    // <-naive naive implementation: original implementation of dbscan
-    // translation of algorithm provided on wiki:
+
+    // original implementation of dbscan
+    // algorithm provided on wiki:
     // see@: https://en.wikipedia.org/wiki/DBSCAN
     //
+#if ORIGINAL == 1
+    int numClusters = original::cluster(sptr_points, E, N);
+#endif
 
-    /** implementation 2) dbscan using kdtree (nanoflann's kdtree) */
-    int numClusters = kdtree::cluster(sptr_points, N, E); // <-optimized
-    // optimized implementation: based on nanoflann's optimized kdtree
+    // implementation: based on nanoflann's optimized kdtree
     // implementations see@: https://github.com/jlblancoc/nanoflann
     //
+#if KDTREE == 1
+    /** kdtree::cluster returns clusters of indexes
+     *  use clustered indexes to classify and colorize cluster points */
 
-    return { *sptr_points, numClusters };
+    Timer timer;
+    /** cluster */
+    std::vector<std::vector<unsigned long>> clusters
+        = kdtree::cluster(sptr_points, E, N);
+
+    /** sort in descending order of cluster size */
+    std::sort(clusters.begin(), clusters.end(),
+        [](const std::vector<unsigned long>& a,
+            const std::vector<unsigned long>& b) {
+            return a.size() > b.size();
+        });
+
+    /** pre-allocate size of objects */
+    std::vector<std::vector<Point>> objects(100);
+
+    /** initialize cluster coloring */
+    collectColors();
+    int clusterColor = 0;
+    int maxColors = clusterColors.size();
+
+    /** classify clusters */
+    int clusterLabel = 0;
+    for (const auto& cluster : clusters) {
+        std::vector<Point> object;
+
+        /** ignore clusters with less than 100 points */
+        if (cluster.size() < 100) {
+            continue;
+        }
+        for (const auto& index : cluster) {
+            (*sptr_points)[index].m_clusterColor = clusterColors[clusterColor];
+            (*sptr_points)[index].m_cluster = clusterLabel;
+            object.emplace_back((*sptr_points)[index]);
+        }
+
+        /** collect classified objects */
+        objects.emplace_back(object);
+        clusterLabel += 1;
+        clusterColor += 1;
+
+        /** confine cluster coloring to existing color definitions */
+        if (clusterColor == maxColors) {
+            clusterColor = 0;
+        }
+    }
+    LOG(INFO) << "dbscan took: " << timer.getDuration();
+#endif
+    return objects;
 }
