@@ -7,7 +7,7 @@
 namespace dbscan {
 
 /** dbscan::cluster
- *   Carries out spatial density-based clustering.
+ *   Carries out density-based spatial clustering.
  *
  * @param points
  *   Unlabeled (un-clustered) set of points.
