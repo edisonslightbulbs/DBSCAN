@@ -1,5 +1,8 @@
+#include <memory>
 #include <nanoflann.hpp>
 #include <vector>
+
+#include "point.h"
 
 namespace kdtree {
 
@@ -10,12 +13,12 @@ struct adaptor {
     {
     }
 
-    [[nodiscard]] inline size_t kdtreeGetPointCount() const
+    [[nodiscard]] inline size_t kdtree_get_point_count() const
     {
         return points.size();
     }
 
-    [[nodiscard]] inline float kdtreeGetPoint(
+    [[nodiscard]] inline float kdtree_get_pt(
         const size_t index, const size_t dim) const
     {
         switch (dim) {
@@ -28,13 +31,13 @@ struct adaptor {
         }
     }
 
-    template <class BBOX> bool kdtreeGetBbox(BBOX& /*bb*/) const
+    template <class BBOX> bool kdtree_get_bbox(BBOX& /*bb*/) const
     {
         return false;
     }
 };
 
-std::array<float, 3> getQueryPoint(
+auto get_query_point(
     std::shared_ptr<std::vector<Point>>& sptr_points, size_t index)
 {
     return std::array<float, 3>({ (*sptr_points)[index].m_xyz[0],
@@ -64,7 +67,7 @@ std::vector<std::vector<unsigned long>> dbscan(
         if (visited[i])
             continue;
 
-        index.radiusSearch(getQueryPoint(sptr_points, i).data(), eps, matches,
+        index.radiusSearch(get_query_point(sptr_points, i).data(), eps, matches,
             SearchParams(32, 0.f, false));
         if (matches.size() < static_cast<size_t>(min_pts))
             continue;
@@ -79,7 +82,7 @@ std::vector<std::vector<unsigned long>> dbscan(
                 continue;
             visited[nb_idx] = true;
 
-            index.radiusSearch(getQueryPoint(sptr_points, nb_idx).data(), eps,
+            index.radiusSearch(get_query_point(sptr_points, nb_idx).data(), eps,
                 sub_matches, SearchParams(32, 0.f, false));
 
             if (sub_matches.size() >= static_cast<size_t>(min_pts)) {
