@@ -5,7 +5,23 @@
 #include <vector>
 
 namespace dbscan {
-std::pair<std::vector<Point>, int> cluster(
+
+/** dbscan::cluster
+ *   Carries out spatial density-based clustering.
+ *
+ * @param points
+ *   Unlabeled (un-clustered) set of points.
+ *
+ * @param E
+ *   Epsilon hyper-parameter.
+ *
+ * @param N
+ *   Number of points in epsilon neighourhood
+ *
+ * @return
+ *   Labeled (clustered) set of Points.
+ */
+std::vector<std::vector<Point>> cluster(
     std::vector<Point>& points, const float& E, const int& N);
 }
 #endif /* DBSCAN_H */
