@@ -33,16 +33,16 @@ std::vector<std::string> clusterColors;
 
 void collectColors()
 {
-    clusterColors.emplace_back(oceanblue);
-    clusterColors.emplace_back(orange);
-    clusterColors.emplace_back(depbrown);
-    clusterColors.emplace_back(darkbrown);
     clusterColors.emplace_back(goldenbrown);
     clusterColors.emplace_back(khaki);
     clusterColors.emplace_back(gold);
     clusterColors.emplace_back(brown);
     clusterColors.emplace_back(yellow);
     clusterColors.emplace_back(skyblue);
+    clusterColors.emplace_back(oceanblue);
+    clusterColors.emplace_back(orange);
+    clusterColors.emplace_back(depbrown);
+    clusterColors.emplace_back(darkbrown);
     clusterColors.emplace_back(red);
     clusterColors.emplace_back(blue);
     clusterColors.emplace_back(deepblue);
@@ -75,7 +75,8 @@ std::vector<std::vector<Point>> dbscan::cluster(
         });
 
     /** create objects (labeled/classified clusters) container */
-    std::vector<std::vector<Point>> pointClusters;
+    std::vector<std::vector<Point>> densityClusters;
+    std::vector<Point> combinedDensityClusters;
 
     /** initialize cluster coloring */
     collectColors();
@@ -87,7 +88,7 @@ std::vector<std::vector<Point>> dbscan::cluster(
         std::vector<Point> pointCluster;
 
         /** ignore clusters with less than 100 points */
-        if (cluster.size() < 100) {
+        if (cluster.size() < 50) {
             continue;
         }
 
@@ -96,10 +97,11 @@ std::vector<std::vector<Point>> dbscan::cluster(
             (*sptr_points)[index].m_clusterColor = clusterColors[clusterColor];
             (*sptr_points)[index].m_cluster = clusterLabel;
             pointCluster.emplace_back((*sptr_points)[index]);
+            combinedDensityClusters.emplace_back((*sptr_points)[index]);
         }
 
         /** collect labeled objects */
-        pointClusters.emplace_back(pointCluster);
+        densityClusters.emplace_back(pointCluster);
         clusterLabel += 1;
         clusterColor += 1;
 
@@ -108,5 +110,6 @@ std::vector<std::vector<Point>> dbscan::cluster(
             clusterColor = 0;
         }
     }
-    return pointClusters;
+    densityClusters.emplace_back(combinedDensityClusters);
+    return densityClusters;
 }
