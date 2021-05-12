@@ -37,7 +37,7 @@ struct adaptor {
     }
 };
 
-auto get_query_point(
+std::array<float, 3> get_query_point(
     std::shared_ptr<std::vector<Point>>& sptr_points, size_t index)
 {
     return std::array<float, 3>({ (*sptr_points)[index].m_xyz[0],
@@ -49,14 +49,14 @@ std::vector<std::vector<unsigned long>> dbscan(
 {
     eps *= eps;
     const auto adapt = adaptor(sptr_points);
-    using namespace nanoflann;
-    using my_kd_tree_t
-        = KDTreeSingleIndexAdaptor<L2_Simple_Adaptor<float, decltype(adapt)>,
-            decltype(adapt), 3>;
+    using index_t = nanoflann::KDTreeSingleIndexAdaptor<
+        nanoflann::L2_Simple_Adaptor<float, decltype(adapt)>, decltype(adapt),
+        3>;
 
-    auto index
-        = my_kd_tree_t(3, adapt, nanoflann::KDTreeSingleIndexAdaptorParams(10));
-    index.buildIndex();
+    index_t indexAdaptor(
+        3, adapt, nanoflann::KDTreeSingleIndexAdaptorParams(10));
+
+    indexAdaptor.buildIndex();
 
     auto visited = std::vector<bool>(sptr_points->size());
     auto clusters = std::vector<std::vector<size_t>>();
@@ -67,13 +67,13 @@ std::vector<std::vector<unsigned long>> dbscan(
         if (visited[i])
             continue;
 
-        index.radiusSearch(get_query_point(sptr_points, i).data(), eps, matches,
-            SearchParams(32, 0.f, false));
+        indexAdaptor.radiusSearch(get_query_point(sptr_points, i).data(), eps,
+            matches, nanoflann::SearchParams(32, 0.f, false));
         if (matches.size() < static_cast<size_t>(min_pts))
             continue;
         visited[i] = true;
 
-        auto cluster = std::vector({ i });
+        std::vector<size_t> cluster = { i };
 
         while (!matches.empty()) {
             auto nb_idx = matches.back().first;
@@ -82,8 +82,9 @@ std::vector<std::vector<unsigned long>> dbscan(
                 continue;
             visited[nb_idx] = true;
 
-            index.radiusSearch(get_query_point(sptr_points, nb_idx).data(), eps,
-                sub_matches, SearchParams(32, 0.f, false));
+            indexAdaptor.radiusSearch(
+                get_query_point(sptr_points, nb_idx).data(), eps, sub_matches,
+                nanoflann::SearchParams(32, 0.f, false));
 
             if (sub_matches.size() >= static_cast<size_t>(min_pts)) {
                 std::copy(sub_matches.begin(), sub_matches.end(),
