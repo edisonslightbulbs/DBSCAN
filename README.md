@@ -12,7 +12,7 @@ Massive thanks to [Jose](https://github.com/jlblancoc) for sharing this adaptati
 namespace dbscan {
 
 /** dbscan::cluster
- *   Carries out view-based spatial clustering.
+ *   Does Density-Based Spatial Clustering of Applications with Noise.
  *
  * @param points
  *   Unlabeled/unclustered set of points.
