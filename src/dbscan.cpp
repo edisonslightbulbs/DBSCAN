@@ -31,8 +31,16 @@
 
 std::vector<std::string> clusterColors;
 
-void collectColors()
+void initColors()
 {
+    clusterColors.emplace_back(brown);
+    clusterColors.emplace_back(green);
+    clusterColors.emplace_back(deepgreen);
+    clusterColors.emplace_back(darkgreen);
+    clusterColors.emplace_back(orange);
+    clusterColors.emplace_back(depbrown);
+    clusterColors.emplace_back(deepblue);
+    clusterColors.emplace_back(darkbrown);
     clusterColors.emplace_back(goldenbrown);
     clusterColors.emplace_back(khaki);
     clusterColors.emplace_back(gold);
@@ -40,34 +48,31 @@ void collectColors()
     clusterColors.emplace_back(yellow);
     clusterColors.emplace_back(skyblue);
     clusterColors.emplace_back(oceanblue);
-    clusterColors.emplace_back(orange);
-    clusterColors.emplace_back(depbrown);
-    clusterColors.emplace_back(darkbrown);
     clusterColors.emplace_back(red);
     clusterColors.emplace_back(blue);
-    clusterColors.emplace_back(deepblue);
     clusterColors.emplace_back(black);
     clusterColors.emplace_back(lightgrey);
     clusterColors.emplace_back(lightgreen);
-    clusterColors.emplace_back(green);
-    clusterColors.emplace_back(deepgreen);
-    clusterColors.emplace_back(darkgreen);
+    clusterColors.emplace_back(goldenbrown);
+    clusterColors.emplace_back(khaki);
+    clusterColors.emplace_back(gold);
+    clusterColors.emplace_back(yellow);
+    clusterColors.emplace_back(skyblue);
+    clusterColors.emplace_back(oceanblue);
+    clusterColors.emplace_back(red);
+    clusterColors.emplace_back(blue);
 }
-
-#define p(x) std::cout << std::to_string(x) << std::endl
 
 std::vector<std::vector<Point>> dbscan::cluster(
     std::vector<Point>& points, const float& E, const int& N)
 {
     auto sptr_points = std::make_shared<std::vector<Point>>(points);
 
-    /** kdtree::cluster returns clusters of indexes.
-     *  use clustered indexes to labeled/classified
-     *  and colorize cluster points */
+    /** kdtree::cluster returns clustered indexes */
     std::vector<std::vector<unsigned long>> clusters
         = kdtree::cluster(sptr_points, E, N);
 
-    /** sort clusters in descending order of cluster size */
+    /** sort clusters using descending size */
     std::sort(clusters.begin(), clusters.end(),
         [](const std::vector<unsigned long>& a,
             const std::vector<unsigned long>& b) {
@@ -76,40 +81,44 @@ std::vector<std::vector<Point>> dbscan::cluster(
 
     /** create objects (labeled/classified clusters) container */
     std::vector<std::vector<Point>> densityClusters;
-    std::vector<Point> combinedDensityClusters;
+    std::vector<Point> accumulatedClusters;
 
-    /** initialize cluster coloring */
-    collectColors();
-    int clusterColor = 0;
-    int maxColors = clusterColors.size();
+    /** initialize cluster colors */
+    initColors();
+    int colorIndex = 0;
+    int maxColorIndex = clusterColors.size();
 
+    /** label points using index clusters */
     int clusterLabel = 0;
+    int clusterCount = 0;
     for (const auto& cluster : clusters) {
-        std::vector<Point> pointCluster;
+        std::vector<Point> densityCluster;
 
-        /** ignore clusters with less than 100 points */
-        if (cluster.size() < 50) {
+        // Iff clusters are more than our color set size,
+        //   assimilate them into the larges cluster
+        if (clusterCount == maxColorIndex - 1) {
+            (*sptr_points)[0].m_clusterColor = clusterColors[0];
+            (*sptr_points)[0].m_cluster = clusterLabel;
+            densityCluster.emplace_back((*sptr_points)[0]);
             continue;
         }
 
-        /** label clusters */
         for (const auto& index : cluster) {
-            (*sptr_points)[index].m_clusterColor = clusterColors[clusterColor];
+            (*sptr_points)[index].m_clusterColor = clusterColors[colorIndex];
             (*sptr_points)[index].m_cluster = clusterLabel;
-            pointCluster.emplace_back((*sptr_points)[index]);
-            combinedDensityClusters.emplace_back((*sptr_points)[index]);
+            densityCluster.emplace_back((*sptr_points)[index]);
+            accumulatedClusters.emplace_back((*sptr_points)[index]);
         }
 
-        /** collect labeled objects */
-        densityClusters.emplace_back(pointCluster);
+        densityClusters.emplace_back(densityCluster);
         clusterLabel += 1;
-        clusterColor += 1;
+        colorIndex += 1;
 
         /** confine cluster coloring to existing color set */
-        if (clusterColor == maxColors) {
-            clusterColor = 0;
+        if (colorIndex == maxColorIndex) {
+            colorIndex = 0;
         }
     }
-    densityClusters.emplace_back(combinedDensityClusters);
+    densityClusters.emplace_back(accumulatedClusters);
     return densityClusters;
 }
