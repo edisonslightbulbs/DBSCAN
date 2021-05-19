@@ -3,6 +3,7 @@ build/
 outliers/
 region/
 point/
+knn/
 cmake/
 cmake-build-debug/
 
@@ -13,6 +14,7 @@ cmake-build-debug/
 
 CMakeLists.txt
 src/main.cpp
+src/utils.hpp
 src/object.h
 src/window.h
 nanoflann/
