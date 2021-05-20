@@ -91,22 +91,11 @@ std::vector<std::vector<Point>> dbscan::cluster(
     initColors();
     int colorIndex = 0;
     int clusterLabel = 0;
-    int maxClusters = 20;
+    int maxClusters = 25;
     for (const auto& cluster : clusters) {
-        if (cluster.size() < 20) {
+        if (cluster.size() < 20 || clusterLabel >= maxClusters ) {
             continue;
         }
-
-        /** after 25 clusters are found, absorb the rest into largest cluster */
-        if (clusterLabel >= maxClusters) {
-            for (const auto& index : cluster) {
-                (*sptr_points)[index].m_clusterColor = clusterColors[0];
-                (*sptr_points)[index].m_cluster = 0;
-                densityClusters[0].emplace_back((*sptr_points)[index]);
-            }
-            continue;
-        }
-
         std::vector<Point> densityCluster;
         for (const auto& index : cluster) {
             (*sptr_points)[index].m_clusterColor = clusterColors[colorIndex];
@@ -119,5 +108,7 @@ std::vector<std::vector<Point>> dbscan::cluster(
         clusterLabel += 1;
     }
     densityClusters.emplace_back(accumulatedClusters);
+    // std::cout << "total number of clusters: " << densityClusters.size() << std::endl;
+    // std::cout << "size of tabletop cluster: " << densityClusters[0].size() << std::endl;
     return densityClusters;
 }
