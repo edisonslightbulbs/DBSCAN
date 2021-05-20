@@ -91,9 +91,9 @@ std::vector<std::vector<Point>> dbscan::cluster(
     initColors();
     int colorIndex = 0;
     int clusterLabel = 0;
-    int maxClusters = 25;
+    int maxClusters = 20;
     for (const auto& cluster : clusters) {
-        if (cluster.size() < 40) {
+        if (cluster.size() < 20) {
             continue;
         }
 
