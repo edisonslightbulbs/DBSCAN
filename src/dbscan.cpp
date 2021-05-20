@@ -33,34 +33,39 @@ std::vector<std::string> clusterColors;
 
 void initColors()
 {
-    clusterColors.emplace_back(brown);
-    clusterColors.emplace_back(green);
-    clusterColors.emplace_back(deepgreen);
-    clusterColors.emplace_back(darkgreen);
-    clusterColors.emplace_back(orange);
-    clusterColors.emplace_back(depbrown);
-    clusterColors.emplace_back(deepblue);
     clusterColors.emplace_back(darkbrown);
+    clusterColors.emplace_back(deepgreen);
+    clusterColors.emplace_back(deepblue);
+    clusterColors.emplace_back(yellow);
+    clusterColors.emplace_back(black);
     clusterColors.emplace_back(goldenbrown);
     clusterColors.emplace_back(khaki);
+    clusterColors.emplace_back(orange);
+    clusterColors.emplace_back(darkgreen);
+    clusterColors.emplace_back(brown);
+    clusterColors.emplace_back(red);
+    clusterColors.emplace_back(lightgreen);
+    clusterColors.emplace_back(green);
+    clusterColors.emplace_back(depbrown);
     clusterColors.emplace_back(gold);
     clusterColors.emplace_back(brown);
     clusterColors.emplace_back(yellow);
     clusterColors.emplace_back(skyblue);
     clusterColors.emplace_back(oceanblue);
-    clusterColors.emplace_back(red);
     clusterColors.emplace_back(blue);
     clusterColors.emplace_back(black);
-    clusterColors.emplace_back(lightgrey);
-    clusterColors.emplace_back(lightgreen);
     clusterColors.emplace_back(goldenbrown);
     clusterColors.emplace_back(khaki);
     clusterColors.emplace_back(gold);
-    clusterColors.emplace_back(yellow);
+    clusterColors.emplace_back(lightgrey);
     clusterColors.emplace_back(skyblue);
     clusterColors.emplace_back(oceanblue);
     clusterColors.emplace_back(red);
     clusterColors.emplace_back(blue);
+    clusterColors.emplace_back(brown);
+    clusterColors.emplace_back(yellow);
+    clusterColors.emplace_back(skyblue);
+    clusterColors.emplace_back(oceanblue);
 }
 
 std::vector<std::vector<Point>> dbscan::cluster(
@@ -83,41 +88,35 @@ std::vector<std::vector<Point>> dbscan::cluster(
     std::vector<std::vector<Point>> densityClusters;
     std::vector<Point> accumulatedClusters;
 
-    /** initialize cluster colors */
     initColors();
     int colorIndex = 0;
-    int maxColorIndex = clusterColors.size();
-
-    /** label points using index clusters */
     int clusterLabel = 0;
-    int clusterCount = 0;
+    int maxClusters = 25;
     for (const auto& cluster : clusters) {
-        std::vector<Point> densityCluster;
-
-        // Iff clusters are more than our color set size,
-        //   assimilate them into the larges cluster
-        if (clusterCount == maxColorIndex - 1) {
-            (*sptr_points)[0].m_clusterColor = clusterColors[0];
-            (*sptr_points)[0].m_cluster = clusterLabel;
-            densityCluster.emplace_back((*sptr_points)[0]);
+        if (cluster.size() < 40) {
             continue;
         }
 
+        /** after 25 clusters are found, absorb the rest into largest cluster */
+        if (clusterLabel >= maxClusters) {
+            for (const auto& index : cluster) {
+                (*sptr_points)[index].m_clusterColor = clusterColors[0];
+                (*sptr_points)[index].m_cluster = 0;
+                densityClusters[0].emplace_back((*sptr_points)[index]);
+            }
+            continue;
+        }
+
+        std::vector<Point> densityCluster;
         for (const auto& index : cluster) {
             (*sptr_points)[index].m_clusterColor = clusterColors[colorIndex];
             (*sptr_points)[index].m_cluster = clusterLabel;
             densityCluster.emplace_back((*sptr_points)[index]);
             accumulatedClusters.emplace_back((*sptr_points)[index]);
         }
-
         densityClusters.emplace_back(densityCluster);
-        clusterLabel += 1;
         colorIndex += 1;
-
-        /** confine cluster coloring to existing color set */
-        if (colorIndex == maxColorIndex) {
-            colorIndex = 0;
-        }
+        clusterLabel += 1;
     }
     densityClusters.emplace_back(accumulatedClusters);
     return densityClusters;
