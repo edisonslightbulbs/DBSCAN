@@ -12,16 +12,16 @@ namespace dbscan {
  * @param points
  *   Unlabeled (un-clustered) set of points.
  *
- * @param E
+ * @param epsilon
  *   Epsilon hyper-parameter.
  *
- * @param N
+ * @param minPoints
  *   Number of points in epsilon neighourhood
  *
  * @return
  *   Labeled (clustered) set of Points.
  */
 std::vector<std::vector<Point>> cluster(
-    std::vector<Point>& points, const float& E, const int& N);
+    std::vector<Point>& points, const float& epsilon, const int& minPoints);
 }
 #endif /* DBSCAN_H */
