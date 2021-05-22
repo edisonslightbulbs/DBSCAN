@@ -40,8 +40,9 @@ struct adaptor {
 std::array<float, 3> get_query_point(
     std::shared_ptr<std::vector<Point>>& sptr_points, size_t index)
 {
-    return std::array<float, 3>({ (*sptr_points)[index].m_xyz[0],
-        (*sptr_points)[index].m_xyz[1], (*sptr_points)[index].m_xyz[2] });
+    return std::array<float, 3>({ (float)(*sptr_points)[index].m_xyz[0],
+        (float)(*sptr_points)[index].m_xyz[1],
+        (float)(*sptr_points)[index].m_xyz[2] });
 }
 
 std::vector<std::vector<unsigned long>> dbscan(
