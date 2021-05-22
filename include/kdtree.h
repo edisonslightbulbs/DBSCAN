@@ -7,15 +7,16 @@
 namespace kdtree {
 
 struct adaptor {
-    std::vector<Point> points;
-    explicit adaptor(std::shared_ptr<std::vector<Point>>& sptr_points)
-        : points(*sptr_points)
+    std::vector<Point> m_points;
+
+    explicit adaptor(std::vector<Point>& points)
+        : m_points(points)
     {
     }
 
     [[nodiscard]] inline size_t kdtree_get_point_count() const
     {
-        return points.size();
+        return m_points.size();
     }
 
     [[nodiscard]] inline float kdtree_get_pt(
@@ -23,11 +24,11 @@ struct adaptor {
     {
         switch (dim) {
         case 0:
-            return points[index].m_xyz[0];
+            return m_points[index].m_xyz[0];
         case 1:
-            return points[index].m_xyz[1];
+            return m_points[index].m_xyz[1];
         default:
-            return points[index].m_xyz[2];
+            return m_points[index].m_xyz[2];
         }
     }
 
@@ -37,19 +38,17 @@ struct adaptor {
     }
 };
 
-std::array<float, 3> get_query_point(
-    std::shared_ptr<std::vector<Point>>& sptr_points, size_t index)
+std::array<float, 3> get_query_point(std::vector<Point>& points, size_t index)
 {
-    return std::array<float, 3>({ (float)(*sptr_points)[index].m_xyz[0],
-        (float)(*sptr_points)[index].m_xyz[1],
-        (float)(*sptr_points)[index].m_xyz[2] });
+    return std::array<float, 3>({ (float)points[index].m_xyz[0],
+        (float)points[index].m_xyz[1], (float)points[index].m_xyz[2] });
 }
 
 std::vector<std::vector<unsigned long>> dbscan(
-    std::shared_ptr<std::vector<Point>>& sptr_points, float eps, int min_pts)
+    std::vector<Point>& points, float eps, int min_pts)
 {
     eps *= eps;
-    const auto adapt = adaptor(sptr_points);
+    const auto adapt = adaptor(points);
     using index_t = nanoflann::KDTreeSingleIndexAdaptor<
         nanoflann::L2_Simple_Adaptor<float, decltype(adapt)>, decltype(adapt),
         3>;
@@ -59,16 +58,16 @@ std::vector<std::vector<unsigned long>> dbscan(
 
     indexAdaptor.buildIndex();
 
-    auto visited = std::vector<bool>(sptr_points->size());
+    auto visited = std::vector<bool>(points.size());
     auto clusters = std::vector<std::vector<size_t>>();
     auto matches = std::vector<std::pair<size_t, float>>();
     auto sub_matches = std::vector<std::pair<size_t, float>>();
 
-    for (size_t i = 0; i < sptr_points->size(); i++) {
+    for (size_t i = 0; i < points.size(); i++) {
         if (visited[i])
             continue;
 
-        indexAdaptor.radiusSearch(get_query_point(sptr_points, i).data(), eps,
+        indexAdaptor.radiusSearch(get_query_point(points, i).data(), eps,
             matches, nanoflann::SearchParams(32, 0.f, false));
         if (matches.size() < static_cast<size_t>(min_pts))
             continue;
@@ -83,9 +82,8 @@ std::vector<std::vector<unsigned long>> dbscan(
                 continue;
             visited[nb_idx] = true;
 
-            indexAdaptor.radiusSearch(
-                get_query_point(sptr_points, nb_idx).data(), eps, sub_matches,
-                nanoflann::SearchParams(32, 0.f, false));
+            indexAdaptor.radiusSearch(get_query_point(points, nb_idx).data(),
+                eps, sub_matches, nanoflann::SearchParams(32, 0.f, false));
 
             if (sub_matches.size() >= static_cast<size_t>(min_pts)) {
                 std::copy(sub_matches.begin(), sub_matches.end(),
@@ -99,8 +97,7 @@ std::vector<std::vector<unsigned long>> dbscan(
 }
 
 std::vector<std::vector<unsigned long>> cluster(
-    std::shared_ptr<std::vector<Point>>& sptr_points, const float& E,
-    const int& N)
+    std::vector<Point>& sptr_points, const float& E, const int& N)
 {
     return kdtree::dbscan(sptr_points, E, N);
 }
