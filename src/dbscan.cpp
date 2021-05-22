@@ -69,13 +69,13 @@ void initColors()
 }
 
 std::vector<std::vector<Point>> dbscan::cluster(
-    std::vector<Point>& points, const float& E, const int& N)
+    std::vector<Point>& points, const float& epsilon, const int& minPoints)
 {
     auto sptr_points = std::make_shared<std::vector<Point>>(points);
 
     /** kdtree::cluster returns clustered indexes */
     std::vector<std::vector<unsigned long>> clusters
-        = kdtree::cluster(sptr_points, E, N);
+        = kdtree::cluster(sptr_points, epsilon, minPoints);
 
     /** sort clusters using descending size */
     std::sort(clusters.begin(), clusters.end(),
@@ -93,12 +93,12 @@ std::vector<std::vector<Point>> dbscan::cluster(
     int clusterLabel = 0;
     int maxClusters = 25;
     for (const auto& cluster : clusters) {
-        if (cluster.size() < 20 || clusterLabel >= maxClusters ) {
+        if (cluster.size() < 20 || clusterLabel >= maxClusters) {
             continue;
         }
         std::vector<Point> densityCluster;
         for (const auto& index : cluster) {
-            (*sptr_points)[index].m_clusterColor = clusterColors[colorIndex];
+            (*sptr_points)[index].m_crgb = clusterColors[colorIndex];
             (*sptr_points)[index].m_cluster = clusterLabel;
             densityCluster.emplace_back((*sptr_points)[index]);
             accumulatedClusters.emplace_back((*sptr_points)[index]);
@@ -108,7 +108,8 @@ std::vector<std::vector<Point>> dbscan::cluster(
         clusterLabel += 1;
     }
     densityClusters.emplace_back(accumulatedClusters);
-    // std::cout << "total number of clusters: " << densityClusters.size() << std::endl;
-    // std::cout << "size of tabletop cluster: " << densityClusters[0].size() << std::endl;
+    // std::cout << "total number of clusters: " << densityClusters.size() <<
+    // std::endl; std::cout << "size of tabletop cluster: " <<
+    // densityClusters[0].size() << std::endl;
     return densityClusters;
 }
