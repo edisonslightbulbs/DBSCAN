@@ -6,11 +6,11 @@
 
 namespace dbscan {
 
-/** dbscan::cluster
- *   Carries out density-based spatial clustering.
+/** cluster
+ *   Does density-based spatial clustering.
  *
  * @param points
- *   Unlabeled (un-clustered) set of points.
+ *   Uncustered points.
  *
  * @param epsilon
  *   Epsilon hyper-parameter.
@@ -19,9 +19,9 @@ namespace dbscan {
  *   Number of points in epsilon neighourhood
  *
  * @return
- *   Labeled (clustered) set of Points.
+ *   Clustered indexes.
  */
-std::vector<std::vector<Point>> cluster(
+std::vector<std::vector<unsigned long>> cluster(
     std::vector<Point>& points, const float& epsilon, const int& minPoints);
 }
 #endif /* DBSCAN_H */
