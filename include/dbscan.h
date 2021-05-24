@@ -10,7 +10,7 @@ namespace dbscan {
  *   Does density-based spatial clustering.
  *
  * @param points
- *   Uncustered points.
+ *   Un-t clustered points.
  *
  * @param epsilon
  *   Epsilon hyper-parameter.

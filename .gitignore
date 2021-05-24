@@ -19,3 +19,4 @@ src/object.h
 src/window.h
 nanoflann/
 utility/
+svd/

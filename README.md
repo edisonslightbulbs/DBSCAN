@@ -11,22 +11,23 @@ Massive thanks to [Jose](https://github.com/jlblancoc) for sharing this adaptati
 
 namespace dbscan {
 
-/** dbscan::cluster
- *   Does Density-Based Spatial Clustering of Applications with Noise.
+/** cluster
+ *   Does density-based spatial clustering.
  *
  * @param points
- *   Unlabeled/unclustered set of points.
+ *   Un-clustered points.
  *
- * @param E
+ * @param epsilon
  *   Epsilon hyper-parameter.
  *
- * @param N
- *   Number of points within an epsilon neighourhood
+ * @param minPoints
+ *   Number of points in epsilon neighourhood
  *
  * @return
- *   Labeled/clustered set of Points.
+ *   Clustered indexes.
  */
-std::vector<std::vector<Point>> cluster(std::vector<Point>& points, const float& E, const int& N);
+std::vector<std::vector<unsigned long>> cluster(
+std::vector<Point>& points, const float& epsilon, const int& minPoints);
 }
 
 ```
@@ -40,18 +41,16 @@ here's an example of how to use the interface
 
 int main(int argc, char* argv[]){
 
-    std::vector<Point> points = readPoints();
+std::vector<Point> points = readPoints();
 
-    int minPoints = 4;
-    float epsilon = 3.320;
-    std::vector<std::vector<Point>> clusters = dbscan::cluster(points, epsilon, minPoints);
+int minPoints = 4;
+float epsilon = 3.320;
+std::vector<std::vector<unsigned long>> iClusters = dbscan::cluster(points, epsilon, minPoints);
 
-    writePoints(clusters.front());
-
-    return 0;
+return 0;
 }
 ```
 
 *   You can find an example Point Class [here](https://github.com/edisonslightbulbs/point).
 
-*   The `readPoints` and `writePoints` functions are adaptable implementations and therefore left out.
+*   The `readPoints` function can be implemented flexibly and therefore, left out.
